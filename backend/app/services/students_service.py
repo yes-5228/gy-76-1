@@ -38,6 +38,8 @@ def renew_student(payload):
         raise ValueError("课时必须大于 0")
     if amount < 0:
         raise ValueError("缴费金额不能为负")
+    if amount == 0:
+        raise ValueError("金额不能为零")
 
     renewal_record = {
         "id": new_id("ren"),

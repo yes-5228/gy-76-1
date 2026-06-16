@@ -48,7 +48,7 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
       return;
     }
     if (!(renewForm.amount > 0)) {
-      setRenewMessage("缴费金额必须大于0");
+      setRenewMessage("金额不能为零");
       return;
     }
     setRenewing(true);
