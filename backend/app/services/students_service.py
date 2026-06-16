@@ -1,3 +1,5 @@
+from datetime import date
+
 from .validation import require_fields
 from ..config import RENEWAL_THRESHOLD
 from ..storage import mutate, new_id, read_data
@@ -26,6 +28,52 @@ def create_student(payload):
 
     mutate(add)
     return student
+
+
+def renew_student(payload):
+    require_fields(payload, ["student_id", "hours", "amount"])
+    hours = float(payload["hours"])
+    amount = float(payload["amount"])
+    if hours <= 0:
+        raise ValueError("课时必须大于 0")
+    if amount < 0:
+        raise ValueError("缴费金额不能为负")
+
+    renewal_record = {
+        "id": new_id("ren"),
+        "student_id": payload["student_id"],
+        "hours": hours,
+        "amount": amount,
+        "note": payload.get("note", "").strip(),
+        "renewed_at": payload.get("renewed_at") or date.today().isoformat(),
+    }
+
+    def add_renewal(data):
+        student = next((item for item in data["students"] if item["id"] == payload["student_id"]), None)
+        if not student:
+            raise ValueError("学员不存在")
+
+        student["remaining_hours"] = round(student["remaining_hours"] + hours, 2)
+        if "renewals" not in data:
+            data["renewals"] = []
+        data["renewals"].append(renewal_record)
+        return data
+
+    mutate(add_renewal)
+    return renewal_record
+
+
+def list_renewals():
+    data = read_data()
+    renewals = data.get("renewals", [])
+    students = {student["id"]: student for student in data["students"]}
+    return [
+        {
+            **record,
+            "student_name": students.get(record["student_id"], {}).get("name", "未知学员"),
+        }
+        for record in sorted(renewals, key=lambda item: item["renewed_at"], reverse=True)
+    ]
 
 
 def get_renewal_reminders():

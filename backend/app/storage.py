@@ -68,6 +68,24 @@ def _default_data():
             },
         ],
         "payroll_settlements": [],
+        "renewals": [
+            {
+                "id": "ren-001",
+                "student_id": "stu-001",
+                "hours": 12,
+                "amount": 2400,
+                "note": "暑期班续费",
+                "renewed_at": today,
+            },
+            {
+                "id": "ren-002",
+                "student_id": "stu-003",
+                "hours": 20,
+                "amount": 3600,
+                "note": "季度套餐",
+                "renewed_at": today,
+            },
+        ],
     }
 
 

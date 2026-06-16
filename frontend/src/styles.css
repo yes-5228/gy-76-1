@@ -150,7 +150,7 @@ h2 {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -325,6 +325,41 @@ textarea {
   background: #d9eee4;
   color: #0f6b52;
   font-weight: 800;
+}
+
+.student-card {
+  border-top: 1px solid #edf2ef;
+  padding: 4px 0;
+}
+
+.student-card:first-of-type {
+  border-top: 0;
+}
+
+.renewal-history {
+  margin-left: 0;
+  margin-bottom: 8px;
+  padding-left: 12px;
+  border-left: 2px solid #d9eee4;
+}
+
+.renewal-history-title {
+  font-size: 12px;
+  color: #68756f;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.renewal-record {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: #68756f;
+  padding: 3px 0;
+}
+
+.renewal-note {
+  color: #0f6b52;
 }
 
 @media (max-width: 900px) {

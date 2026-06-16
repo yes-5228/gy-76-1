@@ -4,6 +4,7 @@ import { currency } from "../utils/format";
 
 export function DashboardPage({ data }) {
   const dashboard = data.dashboard || {};
+  const recentRenewals = dashboard.recent_renewals || [];
 
   return (
     <div className="page-grid">
@@ -12,6 +13,8 @@ export function DashboardPage({ data }) {
         <StatCard label="续费提醒" value={dashboard.renewal_count || 0} tone="warning" />
         <StatCard label="本月课消" value={`${dashboard.month_consumed_hours || 0} 课时`} tone="success" />
         <StatCard label="本月课酬" value={currency(dashboard.month_payroll_amount)} />
+        <StatCard label="本月续费收入" value={currency(dashboard.month_renewal_amount)} tone="success" />
+        <StatCard label="本月新增课时" value={`${dashboard.month_renewal_hours || 0} 课时`} tone="success" />
       </div>
 
       <section className="panel">
@@ -50,6 +53,33 @@ export function DashboardPage({ data }) {
             <b>{record.hours} 课时</b>
           </div>
         ))}
+      </section>
+
+      <section className="panel">
+        <div className="panel-heading">
+          <h2>最近续费</h2>
+          <span>{recentRenewals.length} 条记录</span>
+        </div>
+        {recentRenewals.length ? (
+          <div className="table-list">
+            {recentRenewals.map((record) => (
+              <div className="table-row" key={record.id}>
+                <div>
+                  <strong>{record.student_name}</strong>
+                  <span>{record.renewed_at} {record.note ? `/ ${record.note}` : ""}</span>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <strong style={{ color: "#0f6b52" }}>+{record.hours} 课时</strong>
+                  <span style={{ display: "block", color: "#68756f", fontSize: "13px" }}>
+                    {currency(record.amount)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState text="暂无续费记录" />
+        )}
       </section>
     </div>
   );
