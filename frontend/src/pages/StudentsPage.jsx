@@ -21,6 +21,8 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
   const [renewForm, setRenewForm] = useState(initialRenewForm);
   const [message, setMessage] = useState("");
   const [renewMessage, setRenewMessage] = useState("");
+  const [renewing, setRenewing] = useState(false);
+  const [expandedStudents, setExpandedStudents] = useState({});
 
   const submitStudent = async (event) => {
     event.preventDefault();
@@ -38,10 +40,18 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
   const submitRenew = async (event) => {
     event.preventDefault();
     setRenewMessage("");
+    if (renewing) {
+      return;
+    }
     if (!renewForm.student_id) {
       setRenewMessage("请选择学员");
       return;
     }
+    if (!(renewForm.amount > 0)) {
+      setRenewMessage("缴费金额必须大于0");
+      return;
+    }
+    setRenewing(true);
     try {
       await api.renewStudent(renewForm);
       setRenewForm(initialRenewForm);
@@ -49,12 +59,24 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
       setRenewMessage("续费登记成功");
     } catch (error) {
       setRenewMessage(error.message);
+    } finally {
+      setRenewing(false);
     }
   };
 
   const selectStudentForRenew = (student) => {
+    if (renewing) {
+      return;
+    }
     setRenewForm({ ...initialRenewForm, student_id: student.id });
     setRenewMessage("");
+  };
+
+  const toggleHistory = (studentId) => {
+    setExpandedStudents((prev) => ({
+      ...prev,
+      [studentId]: !prev[studentId],
+    }));
   };
 
   const studentRenewals = (studentId) => {
@@ -116,6 +138,7 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
               <select
                 value={renewForm.student_id}
                 onChange={(event) => setRenewForm({ ...renewForm, student_id: event.target.value })}
+                disabled={renewing}
                 required
               >
                 <option value="">请选择学员</option>
@@ -135,6 +158,7 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
                   step="0.5"
                   value={renewForm.hours}
                   onChange={(event) => setRenewForm({ ...renewForm, hours: Number(event.target.value) })}
+                  disabled={renewing}
                   required
                 />
               </label>
@@ -142,10 +166,11 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
                 缴费金额（元）
                 <input
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   value={renewForm.amount}
                   onChange={(event) => setRenewForm({ ...renewForm, amount: Number(event.target.value) })}
+                  disabled={renewing}
                   required
                 />
               </label>
@@ -157,9 +182,12 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
                 value={renewForm.note}
                 onChange={(event) => setRenewForm({ ...renewForm, note: event.target.value })}
                 placeholder="如：暑期班续费、季度套餐等"
+                disabled={renewing}
               />
             </label>
-            <button className="primary-button" type="submit">确认续费</button>
+            <button className="primary-button" type="submit" disabled={renewing}>
+              {renewing ? "提交中..." : "确认续费"}
+            </button>
             {renewMessage ? <div className="inline-message">{renewMessage}</div> : null}
           </form>
         </section>
@@ -173,6 +201,8 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
         {students.map((student) => {
           const warning = reminders.some((item) => item.id === student.id);
           const records = studentRenewals(student.id);
+          const isExpanded = !!expandedStudents[student.id];
+          const displayRecords = isExpanded ? records : records.slice(0, 3);
           return (
             <div className="student-card" key={student.id}>
               <div className="table-row">
@@ -186,15 +216,25 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
                     type="button"
                     className="small-button"
                     onClick={() => selectStudentForRenew(student)}
+                    disabled={renewing}
                   >
-                    续费
+                    {renewing ? "处理中" : "续费"}
                   </button>
                 </div>
               </div>
               {records.length > 0 && (
                 <div className="renewal-history">
-                  <div className="renewal-history-title">续费记录</div>
-                  {records.slice(0, 3).map((record) => (
+                  <div
+                    className="renewal-history-title"
+                    onClick={() => toggleHistory(student.id)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    续费记录（共 {records.length} 条）
+                    <span style={{ marginLeft: "6px" }}>
+                      {isExpanded ? "收起" : records.length > 3 ? "展开全部" : ""}
+                    </span>
+                  </div>
+                  {displayRecords.map((record) => (
                     <div className="renewal-record" key={record.id}>
                       <span>{record.renewed_at}</span>
                       <span>+{record.hours} 课时</span>
