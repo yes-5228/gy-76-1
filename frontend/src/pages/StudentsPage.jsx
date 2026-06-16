@@ -9,12 +9,14 @@ const initialStudentForm = {
   remaining_hours: 12,
 };
 
-const initialRenewForm = {
+const createInitialRenewForm = () => ({
   student_id: "",
   hours: 10,
-  amount: 0,
+  amount: 2000,
   note: "",
-};
+});
+
+const initialRenewForm = createInitialRenewForm();
 
 export function StudentsPage({ students, reminders, renewals, onCreated }) {
   const [studentForm, setStudentForm] = useState(initialStudentForm);
@@ -54,7 +56,7 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
     setRenewing(true);
     try {
       await api.renewStudent(renewForm);
-      setRenewForm(initialRenewForm);
+      setRenewForm(createInitialRenewForm());
       await onCreated();
       setRenewMessage("续费登记成功");
     } catch (error) {
@@ -68,7 +70,7 @@ export function StudentsPage({ students, reminders, renewals, onCreated }) {
     if (renewing) {
       return;
     }
-    setRenewForm({ ...initialRenewForm, student_id: student.id });
+    setRenewForm({ ...createInitialRenewForm(), student_id: student.id });
     setRenewMessage("");
   };
 
